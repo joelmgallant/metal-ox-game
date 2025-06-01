@@ -8,7 +8,10 @@ export class PreloadScene extends Phaser.Scene {
   preload(): void {
     this.createLoadingBar();
     
-    // Create placeholder graphics for now
+    // Load actual player sprite
+    this.load.image('player', 'assets/sprites/player.png');
+    
+    // Create placeholder graphics for other assets
     this.createPlaceholderAssets();
   }
 
@@ -52,11 +55,6 @@ export class PreloadScene extends Phaser.Scene {
   private createPlaceholderAssets(): void {
     // Create colored rectangles as placeholder sprites
     const graphics = this.make.graphics({ x: 0, y: 0 });
-    
-    // Player sprite (blue)
-    graphics.fillStyle(0x0000ff);
-    graphics.fillRect(0, 0, 32, 48);
-    graphics.generateTexture('player', 32, 48);
     
     // Enemy sprite (red)
     graphics.clear();

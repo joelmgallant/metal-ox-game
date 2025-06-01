@@ -12,6 +12,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private shootCooldown: number = 300;
   private facing: 'left' | 'right' = 'right';
   private gameScene: Phaser.Scene;
+  private debugGraphics: Phaser.GameObjects.Graphics;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'player');
@@ -20,16 +21,48 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
     
+    
     this.setCollideWorldBounds(true);
     this.setBounce(0);
     this.setDrag(800, 0);
     this.setMaxVelocity(this.moveSpeed, 500);
-    this.setSize(24, 42);
-    this.setOffset(4, 6);
+
+
+    // Scale down the sprite to appropriate game size
+    this.setScale(0.1); // Adjust this value as needed
+
+    // Custom bounding box - adjust these values as needed
+    // setSize(width, height) - the size of the collision box
+    // setOffset(x, y) - offset from top-left of sprite
+    this.setSize(500, 800); 
+    this.setOffset(200, 0);
+    
+    // Create debug graphics for bounding box
+    this.debugGraphics = scene.add.graphics();
+    this.drawDebugBounds();
+  }
+  
+  private drawDebugBounds(): void {
+    this.debugGraphics.clear();
+    this.debugGraphics.lineStyle(2, 0x00ff00, 1);
+    
+    // Get the physics body bounds
+    const body = this.body as Phaser.Physics.Arcade.Body;
+    if (body) {
+      this.debugGraphics.strokeRect(
+        body.x,
+        body.y,
+        body.width,
+        body.height
+      );
+    }
   }
 
   update(cursors: Phaser.Types.Input.Keyboard.CursorKeys, keys: Record<string, Phaser.Input.Keyboard.Key>): void {
     const onGround = this.body!.blocked.down;
+    
+    // Update debug bounds drawing
+    this.drawDebugBounds();
     
     // Horizontal movement
     if (cursors.left.isDown) {
@@ -86,8 +119,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private shoot(): void {
     if (!this.canShoot) return;
 
-    const bulletX = this.x + (this.facing === 'right' ? 20 : -20);
-    const bulletY = this.y;
+    const bulletX = this.x + (this.facing === 'right' ? 40 : -40);
+    const bulletY = this.y + 8;
     const bulletVelocity = this.facing === 'right' ? 400 : -400;
     const isCharged = this.chargeTime >= 1000; // Charged if held for 1+ seconds
 
