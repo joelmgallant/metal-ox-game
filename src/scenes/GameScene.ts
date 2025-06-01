@@ -9,6 +9,7 @@ export class GameScene extends Phaser.Scene {
   private bullets!: Phaser.GameObjects.Group;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private keys!: Record<string, Phaser.Input.Keyboard.Key>;
+  private debugText!: Phaser.GameObjects.Text;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -49,14 +50,30 @@ export class GameScene extends Phaser.Scene {
     this.cursors = this.input.keyboard!.createCursorKeys();
     this.keys = this.input.keyboard!.addKeys('X,C,Z') as Record<string, Phaser.Input.Keyboard.Key>;
 
+    // Set world bounds to match level size
+    this.physics.world.setBounds(0, 0, 1600, 600);
+    
     // Camera follow player
     this.cameras.main.startFollow(this.player);
     this.cameras.main.setBounds(0, 0, 1600, 600);
+    
+    // Create debug text
+    this.debugText = this.add.text(this.cameras.main.width - 10, 10, '', {
+      font: '14px monospace',
+      color: '#00ff00',
+      backgroundColor: '#000000',
+      padding: { x: 5, y: 5 }
+    });
+    this.debugText.setOrigin(1, 0); // Align to top-right
+    this.debugText.setScrollFactor(0); // Keep it fixed on screen
   }
 
   update(): void {
     // Handle player input
     this.player.update(this.cursors, this.keys);
+    
+    // Update debug text with player position
+    this.debugText.setText(`Player Pos: (${Math.round(this.player.x)}, ${Math.round(this.player.y)})`);
 
     // Check if player fell off the world
     if (this.player.y > 600) {

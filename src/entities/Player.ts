@@ -4,7 +4,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   public health: number = 6;
   public isInvulnerable: boolean = false;
   
-  private jumpPower: number = -400;
+  private jumpPower: number = -800;
   private moveSpeed: number = 200;
   private isCharging: boolean = false;
   private chargeTime: number = 0;
