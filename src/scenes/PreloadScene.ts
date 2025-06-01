@@ -70,6 +70,12 @@ export class PreloadScene extends Phaser.Scene {
     graphics.fillCircle(4, 4, 4);
     graphics.generateTexture('bullet', 8, 8);
     
+    // Charged bullet sprite (pink)
+    graphics.clear();
+    graphics.fillStyle(0xff69b4);
+    graphics.fillCircle(6, 6, 6);
+    graphics.generateTexture('chargedBullet', 12, 12);
+    
     // Platform tile (gray)
     graphics.clear();
     graphics.fillStyle(0x666666);
@@ -81,6 +87,48 @@ export class PreloadScene extends Phaser.Scene {
     graphics.fillStyle(0x333333);
     graphics.fillRect(0, 0, 32, 32);
     graphics.generateTexture('wall', 32, 32);
+    
+    // Background texture with gradient sky
+    graphics.clear();
+    // Create gradient effect manually with multiple rectangles
+    const skyColors = [
+      { y: 0, height: 200, color: 0x001a33 },    // Dark blue at top
+      { y: 200, height: 200, color: 0x004080 },  // Medium blue in middle
+      { y: 400, height: 200, color: 0x0066cc }   // Lighter blue at bottom
+    ];
+    
+    skyColors.forEach(section => {
+      graphics.fillStyle(section.color);
+      graphics.fillRect(0, section.y, 1600, section.height);
+    });
+    
+    // Add some stars
+    graphics.fillStyle(0xffffff, 0.8);
+    for (let i = 0; i < 50; i++) {
+      const x = Math.random() * 1600;
+      const y = Math.random() * 300;
+      const size = Math.random() * 2;
+      graphics.fillCircle(x, y, size);
+    }
+    
+    // Add some distant mountains
+    graphics.fillStyle(0x1a1a2e, 0.8);
+    graphics.beginPath();
+    graphics.moveTo(0, 400);
+    graphics.lineTo(200, 350);
+    graphics.lineTo(400, 380);
+    graphics.lineTo(600, 320);
+    graphics.lineTo(800, 360);
+    graphics.lineTo(1000, 340);
+    graphics.lineTo(1200, 370);
+    graphics.lineTo(1400, 330);
+    graphics.lineTo(1600, 350);
+    graphics.lineTo(1600, 600);
+    graphics.lineTo(0, 600);
+    graphics.closePath();
+    graphics.fillPath();
+    
+    graphics.generateTexture('background', 1600, 600);
     
     graphics.destroy();
   }

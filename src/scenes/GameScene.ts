@@ -15,6 +15,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   create(): void {
+    // Add background
+    const background = this.add.image(0, 0, 'background');
+    background.setOrigin(0, 0);
+    background.setScrollFactor(0.5); // Parallax effect
+    
     // Create platforms
     this.createLevel();
 
@@ -120,8 +125,9 @@ export class GameScene extends Phaser.Scene {
 
     // Bullet vs enemy collision
     this.physics.add.overlap(this.bullets, this.enemies, (bullet, enemy) => {
+      const damage = (bullet as any).damage || 1;
       bullet.destroy();
-      (enemy as Enemy).takeDamage(1);
+      (enemy as Enemy).takeDamage(damage);
     });
 
     // Player vs enemy collision
@@ -135,8 +141,9 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  createBullet(x: number, y: number, velocityX: number): void {
-    const bullet = this.bullets.get(x, y, 'bullet');
+  createBullet(x: number, y: number, velocityX: number, isCharged: boolean = false): void {
+    const bulletTexture = isCharged ? 'chargedBullet' : 'bullet';
+    const bullet = this.bullets.get(x, y, bulletTexture);
     if (bullet) {
       bullet.setActive(true);
       bullet.setVisible(true);
@@ -146,10 +153,13 @@ export class GameScene extends Phaser.Scene {
       
       // Now we can safely access the body
       if (bullet.body) {
-        bullet.body.setVelocityX(velocityX);
+        bullet.body.setVelocityX(velocityX * (isCharged ? 1.5 : 1)); // Charged bullets are faster
         bullet.body.setAllowGravity(false);
-        bullet.body.setSize(8, 8);
+        bullet.body.setSize(isCharged ? 12 : 8, isCharged ? 12 : 8);
       }
+      
+      // Store damage value on the bullet
+      (bullet as any).damage = isCharged ? 3 : 1;
       
       // Destroy bullet after 2 seconds
       this.time.delayedCall(2000, () => {

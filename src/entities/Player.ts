@@ -89,9 +89,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const bulletX = this.x + (this.facing === 'right' ? 20 : -20);
     const bulletY = this.y;
     const bulletVelocity = this.facing === 'right' ? 400 : -400;
+    const isCharged = this.chargeTime >= 1000; // Charged if held for 1+ seconds
 
     // Create bullet through GameScene
-    (this.gameScene as any).createBullet(bulletX, bulletY, bulletVelocity);
+    (this.gameScene as any).createBullet(bulletX, bulletY, bulletVelocity, isCharged);
 
     // Apply cooldown
     this.canShoot = false;
@@ -100,7 +101,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     });
 
     // Visual feedback
-    this.gameScene.cameras.main.shake(50, 0.002);
+    this.gameScene.cameras.main.shake(50, isCharged ? 0.005 : 0.002);
   }
 
   takeDamage(amount: number): void {
