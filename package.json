@@ -1,5 +1,5 @@
 {
-  "name": "megaman-game",
+  "name": "metal-ox-game",
   "version": "1.0.0",
   "description": "A Megaman-style platformer game built with Phaser 3 and TypeScript",
   "main": "index.js",
