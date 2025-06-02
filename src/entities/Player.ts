@@ -22,7 +22,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this);
     
     
-    this.setCollideWorldBounds(true);
+    this.setCollideWorldBounds(false); // Allow infinite scrolling
     this.setBounce(0);
     this.setDrag(800, 0);
     this.setMaxVelocity(this.moveSpeed, 500);

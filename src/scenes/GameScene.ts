@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { Player } from '../entities/Player';
 import { Enemy } from '../entities/Enemy';
+import { LevelGenerator } from '../utils/LevelGenerator';
 
 export class GameScene extends Phaser.Scene {
   private player!: Player;
@@ -10,19 +11,27 @@ export class GameScene extends Phaser.Scene {
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private keys!: Record<string, Phaser.Input.Keyboard.Key>;
   private debugText!: Phaser.GameObjects.Text;
+  private levelGenerator!: LevelGenerator;
+  Enemy = Enemy; // Store Enemy class reference for level generator
 
   constructor() {
     super({ key: 'GameScene' });
   }
 
   create(): void {
-    // Add background
-    const background = this.add.image(0, 0, 'background');
-    background.setOrigin(0, 0);
-    background.setScrollFactor(0.5); // Parallax effect
+    // Add repeating background for infinite scrolling
+    const bgWidth = 1600;
+    const bgCount = 5; // Number of background tiles to create
     
-    // Create platforms
-    this.createLevel();
+    for (let i = 0; i < bgCount; i++) {
+      const bg = this.add.image(i * bgWidth, 0, 'background');
+      bg.setOrigin(0, 0);
+      bg.setScrollFactor(0.5); // Parallax effect
+      bg.setDepth(-1); // Ensure background stays behind
+    }
+    
+    // Create platforms group
+    this.platforms = this.physics.add.staticGroup();
 
     // Create player
     this.player = new Player(this, 100, 400);
@@ -40,8 +49,11 @@ export class GameScene extends Phaser.Scene {
       runChildUpdate: true,
     });
 
-    // Add some enemies
-    this.spawnEnemies();
+    // Initialize level generator
+    this.levelGenerator = new LevelGenerator(this, this.platforms, this.enemies);
+    
+    // Generate initial chunks
+    this.levelGenerator.update(this.player.x);
 
     // Set up collisions
     this.setupCollisions();
@@ -50,12 +62,13 @@ export class GameScene extends Phaser.Scene {
     this.cursors = this.input.keyboard!.createCursorKeys();
     this.keys = this.input.keyboard!.addKeys('X,C,Z') as Record<string, Phaser.Input.Keyboard.Key>;
 
-    // Set world bounds to match level size
-    this.physics.world.setBounds(0, 0, 1600, 600);
+    // Remove world bounds for infinite scrolling
+    this.physics.world.setBounds(0, 0, Number.MAX_SAFE_INTEGER, 600);
     
     // Camera follow player
     this.cameras.main.startFollow(this.player);
-    this.cameras.main.setBounds(0, 0, 1600, 600);
+    // Remove camera bounds for infinite scrolling
+    this.cameras.main.removeBounds();
     
     // Create debug text
     this.debugText = this.add.text(this.cameras.main.width - 10, 10, '', {
@@ -72,8 +85,12 @@ export class GameScene extends Phaser.Scene {
     // Handle player input
     this.player.update(this.cursors, this.keys);
     
-    // Update debug text with player position
-    this.debugText.setText(`Player Pos: (${Math.round(this.player.x)}, ${Math.round(this.player.y)})`);
+    // Update level generation based on player position
+    this.levelGenerator.update(this.player.x);
+    
+    // Update debug text with player position and chunk info
+    const currentChunk = Math.floor(this.player.x / 800);
+    this.debugText.setText(`Player Pos: (${Math.round(this.player.x)}, ${Math.round(this.player.y)})\nChunk: ${currentChunk}`);
 
     // Check if player fell off the world
     if (this.player.y > 600) {
@@ -81,59 +98,17 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Clean up off-screen bullets
+    const cameraLeft = this.cameras.main.scrollX - 100;
+    const cameraRight = this.cameras.main.scrollX + this.cameras.main.width + 100;
+    
     this.bullets.children.entries.forEach((bullet) => {
       const b = bullet as Phaser.Physics.Arcade.Sprite;
-      if (b.x < 0 || b.x > 1600 || b.y < 0 || b.y > 600) {
+      if (b.x < cameraLeft || b.x > cameraRight || b.y < 0 || b.y > 600) {
         b.destroy();
       }
     });
   }
 
-  private createLevel(): void {
-    this.platforms = this.physics.add.staticGroup();
-
-    // Ground
-    for (let i = 0; i < 50; i++) {
-      this.platforms.create(i * 32, 568, 'platform');
-    }
-
-    // Platforms
-    this.platforms.create(400, 400, 'platform');
-    this.platforms.create(432, 400, 'platform');
-    this.platforms.create(464, 400, 'platform');
-    
-    this.platforms.create(650, 320, 'platform');
-    this.platforms.create(682, 320, 'platform');
-    
-    this.platforms.create(200, 250, 'platform');
-    this.platforms.create(232, 250, 'platform');
-    
-    this.platforms.create(800, 450, 'platform');
-    this.platforms.create(832, 450, 'platform');
-    this.platforms.create(864, 450, 'platform');
-    
-    this.platforms.create(1000, 350, 'platform');
-    this.platforms.create(1032, 350, 'platform');
-    
-    this.platforms.create(1200, 280, 'platform');
-    this.platforms.create(1232, 280, 'platform');
-    this.platforms.create(1264, 280, 'platform');
-  }
-
-  private spawnEnemies(): void {
-    const enemyPositions = [
-      { x: 500, y: 350 },
-      { x: 700, y: 270 },
-      { x: 900, y: 400 },
-      { x: 1100, y: 300 },
-      { x: 1300, y: 230 },
-    ];
-
-    enemyPositions.forEach(pos => {
-      const enemy = new Enemy(this, pos.x, pos.y);
-      this.enemies.add(enemy);
-    });
-  }
 
   private setupCollisions(): void {
     // Player collisions
